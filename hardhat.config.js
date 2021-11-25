@@ -18,4 +18,20 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
  */
 module.exports = {
   solidity: "0.8.4",
+  defaultNetwork: "rinkeby",
+  networks: {
+    rinkeby: {
+      url: "https://rinkeby.infura.io/v3/e646c773145e4f5486a06fa605dcc4bf",
+      accounts: ["your account id here"]
+    }
+  },
+  paths: {
+    sources: "./contracts",
+    tests: "./test",
+    cache: "./cache",
+    artifacts: "./artifacts"
+  },
+  mocha: {
+    timeout: 20000
+  }
 };
