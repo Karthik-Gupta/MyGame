@@ -70,6 +70,8 @@ export default new Vuex.Store({
                     await dispatch("requestAccess");
                 }
                 await dispatch("checkNetwork");
+                await dispatch("setupEventListeners");
+                await dispatch("fetchNFTMetadata");
             } catch (error) {
                 console.log(error);
                 commit("setError", "Account request refused.");
@@ -142,6 +144,88 @@ export default new Vuex.Store({
                 console.log(error);
                 console.log("connected contract not found");
                 return null;
+            }
+        },
+        async mintCharacterNFT({ commit, dispatch }, characterId) {
+            try {
+                const connectedContract = await dispatch("getContract");
+                const mintTxn = await connectedContract.mintCharacterNFT(characterId);
+                await mintTxn.wait();
+            } catch (error) {
+                console.log(error);
+            }
+        },
+        async fetchNFTMetadata({ state, commit, dispatch }) {
+            try {
+                const connectedContract = await dispatch("getContract");
+                const txn = await connectedContract.checkIfUserHasNFT();
+                if (txn.name) {
+                    commit("setCharacterNFT", transformCharacterData(txn));
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        },
+        async setupEventListeners({ state, commit, dispatch }) {
+            try {
+                const connectedContract = await dispatch("getContract");
+                if (!connectedContract) return;
+                connectedContract.on(
+                    "CharacterNFTMinted",
+                    async (from, tokenId, characterIndex) => {
+                        console.log(
+                            `CharacterNFTMinted - sender: ${from} tokenId: ${tokenId.toNumber()} characterIndex: ${characterIndex.toNumber()}`
+                        );
+                        const characterNFT = await connectedContract.checkIfUserHasNFT();
+                        console.log(characterNFT);
+                        commit("setCharacterNFT", transformCharacterData(characterNFT));
+                        alert(
+                            `Your NFT is all done -- see it here: <https://testnets.opensea.io/assets/$>{
+                      state.contract_address
+                    }/${tokenId.toNumber()}`
+                        );
+                    }
+                );
+
+                connectedContract.on(
+                    "AttackComplete",
+                    async (newBossHp, newPlayerHp) => {
+                        console.log(
+                            `AttackComplete: Boss Hp: ${newBossHp} Player Hp: ${newPlayerHp}`
+                        );
+                        let boss = state.boss;
+                        boss.hp = newBossHp;
+                        commit("setBoss", boss);
+                        let character = state.characterNFT;
+                        character.hp = newPlayerHp;
+                        commit("setCharacterNFT", character);
+                    }
+                );
+            } catch (error) {
+                console.log(error);
+            }
+        },
+        async fetchBoss({ state, commit, dispatch }) {
+            try {
+                const connectedContract = await dispatch("getContract");
+                const bossTxn = await connectedContract.getBigBoss();
+                commit("setBoss", transformCharacterData(bossTxn));
+            } catch (error) {
+                console.log(error);
+            }
+        },
+        async attackBoss({ state, commit, dispatch }) {
+            try {
+                const connectedContract = await dispatch("getContract");
+                commit("setAttackState", "attacking");
+                console.log("Attacking boss...");
+                const attackTxn = await connectedContract.attackBoss();
+                await attackTxn.wait();
+                console.log("attackTxn:", attackTxn);
+                commit("setAttackState", "hit");
+            } catch (error) {
+                console.error("Error attacking boss:", error);
+                setAttackState("");
             }
         },
     }

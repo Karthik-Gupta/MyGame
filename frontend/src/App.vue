@@ -4,7 +4,7 @@
       <div class="header-container">
         <p class="header gradient-text">⚔️ Metaverse Slayer ⚔️</p>
         <p class="sub-text">Team up to protect the Metaverse!</p>
-        <div class="connect-wallet-container">
+        <div class="connect-wallet-container" v-if="!account">
           <img
             src="<https://64.media.tumblr.com/tumblr_mbia5vdmRd1r1mkubo1_500.gifv>"
             alt="Monty Python Gif"
@@ -13,6 +13,8 @@
             Connect Wallet To Get Started
           </button>
         </div>
+        <select-character v-else-if="account" && !characterNFT" />
+        <arena v-else-if="account && characterNFT" />
       </div>
       <div class="footer-container">
         <img
@@ -47,6 +49,14 @@ export default {
   },
 	async mounted() {
     await this.$store.dispatch("connect", false);
+  },
+  computed: {
+    account() {
+      return this.$store.getters.account;
+    },
+    characterNFT() {
+      return this.$store.getters.characterNFT;
+    },
   },
 };
 </script>
