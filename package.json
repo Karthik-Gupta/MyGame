@@ -1,5 +1,7 @@
 {
-  "name": "hardhat-project",
+  "name": "MyGame",
+  "version": "1.0.0",
+  "description": "Sample game implementation",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
